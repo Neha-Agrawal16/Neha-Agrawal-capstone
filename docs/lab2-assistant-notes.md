@@ -1,67 +1,39 @@
-# Lab 2 — Coding Assistant Verification
+# Lab 2 — Coding-assistant verification note
 
-## Step 5a — Chosen Improvement
+## The change
 
-Add total-cost reporting to the pipeline.
+I added total-cost reporting to `src/pipeline/pipeline.py`. The pipeline now calculates the total cost of the completed answers using `sum(a.cost_usd for a in answers)`, logs the total cost using the existing logger, and prints the total cost at the end of the pipeline. I chose this improvement because it is a small, focused change that can be verified without changing the existing retry logic, batch processing, or SQLite persistence.
 
-The pipeline should calculate the total cost using:
+## The ask
 
-`sum(a.cost_usd for a in answers)`
+I asked ChatGPT to add total-cost reporting to `src/pipeline/pipeline.py`.
 
-The total cost should be both printed and logged.
+The prompt was:
 
-## Why I chose this improvement
+"Add total-cost reporting to `src/pipeline/pipeline.py`. After the batch completes, calculate the total cost using `sum(a.cost_usd for a in answers)`. Then log the total cost using the existing `log` logger and print the total cost at the end of the pipeline. Do not modify the existing retry logic, batch processing, SQLite persistence, or other functionality."
 
-This is a small change that is easy to verify without changing the existing batch processing, retry, or database functionality.
+## What it produced
 
-## Step 5b — Coding Assistant Prompt
-
-Add total-cost reporting to `src/pipeline/pipeline.py`.
-
-After the batch completes, calculate the total cost using:
-
-`sum(a.cost_usd for a in answers)`
-
-Then:
-
-1. Log the total cost using the existing `log` logger.
-2. Print the total cost at the end of the pipeline.
-
-Do not modify the existing retry logic, batch processing, SQLite persistence, or other functionality.
-## Step 5c — Implementation and Verification
-
-### Change made
-
-Added total-cost reporting to `src/pipeline/pipeline.py`:
+The assistant suggested adding the total-cost calculation after the batch completed:
 
 `total_cost = sum(a.cost_usd for a in answers)`
 
-The total cost is both logged and printed after the pipeline completes.
+It also added logging and printing of the total cost:
 
-### Verification
+`log.info(f"total cost: {total_cost}")`
 
-I ran:
+`print(f"total cost: ${total_cost:.6f}")`
 
-`python -m src.pipeline.pipeline`
+No unrelated pipeline functionality was intentionally changed.
 
-The pipeline successfully processed 20 questions.
+## What I verified before accepting
 
-Results:
+* Diff read: I reviewed the committed diff and confirmed that the change was limited to total-cost reporting in `src/pipeline/pipeline.py` and the verification note.
 
-* Questions processed: 20
-* Successful answers: 20
-* Retries: 0
-* Total cost: $0.002000
-* SQLite persistence: successful
-* Run ID: 6
-* Answers persisted: 20
+* Test run: I ran `python -m src.pipeline.pipeline`. The pipeline successfully processed 20 questions, with 20 successful answers, 0 retries, and a reported total cost of `$0.002000`. SQLite persistence also completed successfully with Run ID 6 and 20 answers persisted. I checked the log using `Get-Content logs/pipeline.log -Tail 5`, which confirmed the total cost and persistence.
 
-I also checked the log using:
+* Security check: No new dependencies were introduced. There were no changes to API-key or secret handling, SQL logic, retry logic, or unsanitised input processing. The change only reads existing `cost_usd` values and reports their total.
 
-`Get-Content logs/pipeline.log -Tail 5`
+## What I changed before committing
 
-The log confirmed that the total cost was recorded and that the run was persisted to `results.db`.
-
-### Verification conclusion
-
-The change was verified successfully. The new total-cost reporting works without affecting the existing batch processing, logging, or SQLite persistence functionality.
+Nothing. I reviewed the suggested change and accepted it without additional code modifications.
