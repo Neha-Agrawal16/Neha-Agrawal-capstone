@@ -20,7 +20,7 @@ import sys
 import time
 
 from .fake_llm import Question, Answer, fake_ask_llm, FakeLLMError
-from .logging_config import get_logger
+#from .logging_config import get_logger
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -32,11 +32,25 @@ from .logging_config import get_logger
 #   - A module-level `log = logging.getLogger("pipeline")` + setLevel(INFO)
 #   - A StreamHandler attached to that logger, using JsonFormatter()
 # ─────────────────────────────────────────────────────────────────────────────
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        return json.dumps({
+            "ts": round(time.time(), 3),
+            "level": record.levelname,
+            "msg": record.getMessage(),
+        })
 
+
+log = logging.getLogger("pipeline")
+log.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormatter())
+log.addHandler(handler)
 # ─────────────────────────────────────────────────────────────────────────────
 # Logger — shared across the package
 # ─────────────────────────────────────────────────────────────────────────────
-log = get_logger()
+#log = get_logger()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 2b — single LLM call
