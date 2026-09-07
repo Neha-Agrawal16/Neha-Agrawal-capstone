@@ -167,6 +167,27 @@ async def run_in_batches(
         await asyncio.sleep(0.1)              # gentle pace between batches
     return out
 
+async def run_batch_stream(
+    questions: list[Question],
+    fail_rate: float = 0.0
+) -> list[Answer]:
+
+    tasks = [
+        ask_llm_with_retry(q, fail_rate=fail_rate)
+        for q in questions
+    ]
+
+    results: list[Answer] = []
+
+    for coro in asyncio.as_completed(tasks):
+        try:
+            ans = await coro
+            print(f"  ✓ {ans.text[:60]}...")
+            results.append(ans)
+        except Exception as exc:
+            print(f"  ✗ task failed: {exc}")
+
+    return results
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Run summariser
